@@ -6,21 +6,56 @@ const programma = new Programma({
   user: 'vinceredevuser',
   password: 'smokingVincere',
   database: 'postgres',
+  max: 50
 })
 
-// programma.addJob('cool', {
+function addtasks (topic = 'smsWorker') {
+  console.time('enqueue')
+  Promise.all(
+    Array(1000).fill(0)
+    .map((_, i) => (
+      programma.addJob(
+        topic,
+        {
+          data: {
+            index: i,
+          },
+          runAfterSeconds: 20
+        }
+      )
+    ))
+  )
+  .then(m => {
+    console.log(m)
+    console.timeEnd('enqueue')
+  })
+  .catch(console.error)  
+}
+
+addtasks('smsWorker')
+
+// addtasks('anotherWorker')
+
+// programma.addJob('sendSms', {
 //   data: { something: '123' },
 //   attributes: { retry: 10 },
-//   runAfterSeconds: 60,
+//   runAfterSeconds: 120,
+//   // runAfterDate: '2020;233232'
 // })
 //   .then(r => {
 //     console.log('job have been added ', r)
 //   })
 //   .catch(console.error)
 
-programma.test('cool', 10)
-  .then(console.log)
-  .catch(console.error)
+// programma.receiveJobs({ topicName: 'smsWorker' }, (id, data, attrs) => {
+//   console.log('job ', id, data, attrs)
+// })
+
+programma.receiveJobs({ topicName: 'smsWorker', maxMessages: 50, heartBeat: 3 }, (job) => {
+  console.log('job ', job.id, job.data, job.attributes)
+})
+
+programma.start()
 
 
 

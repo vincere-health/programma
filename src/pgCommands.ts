@@ -5,9 +5,22 @@ import { JobStates } from './constants'
 export class PgCommand {
   private pool: Pool
   private tableName: string
-  constructor (config: PoolConfig, tableName: string = 'programmajobs') {
+  public static instance: PgCommand | null = null
+
+  private constructor (config: PoolConfig, tableName: string = 'programmajobs') {
     this.pool = new Pool(config)
     this.tableName = tableName
+  }
+
+  public static createInstance(config: PoolConfig, tableName: string = 'programmajobs') {
+    if (!PgCommand.instance) {
+      PgCommand.instance = new PgCommand(config, tableName)
+    }
+    return PgCommand.instance
+  }
+
+  public static getInstance(): PgCommand {
+    return PgCommand.instance as PgCommand
   }
 
   public shutdown() {
@@ -33,17 +46,24 @@ export class PgCommand {
 
   public getJobsToBeProcessed(
     name: string,
-    limit: number = 100,
+    limit: number,
   ): Promise<QueryResult<any>> {
     return this.pool.query(
       `
-        SELECT id
-        FROM ${this.tableName}
-        WHERE state != '${JobStates.PROCESSING}'
-          AND name = $1
-          AND start_after < now()
-        LIMIT $2
-        FOR UPDATE SKIP LOCKED
+        with claimJob as (
+          SELECT id
+          FROM ${this.tableName}
+          WHERE state = '${JobStates.CREATED}'
+            AND name = $1
+            AND start_after < now()
+          LIMIT $2
+          FOR UPDATE SKIP LOCKED
+        )
+        Update ${this.tableName} as job
+        SET state = '${JobStates.READY}'
+        from claimJob
+        where job.id = claimJob.id
+        Returning job.id, job.data, job.opts;
       `,
       [name, limit]
     )

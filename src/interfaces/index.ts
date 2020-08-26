@@ -20,6 +20,12 @@ export interface IReceiveMessageConfig {
   topicName: string
 }
 
+export interface IReceiveJob {
+  id: string
+  data: Object
+  attributes: Object
+}
+
 export interface IJobConfig extends IRunOpts {
   // job data is persisted in JSONB type
   // it could contain any number of key value pairs
@@ -40,5 +46,5 @@ export interface IProgramma {
 }
 
 export interface IHandlerCallback {
-  (next: Function): void
+  (job: IReceiveJob): void
 }
