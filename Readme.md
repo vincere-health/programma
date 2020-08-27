@@ -18,7 +18,7 @@ npm install programma
 import { Programma } from 'programma'
 
 const programma = new Programma({
-  connectionString: 'xyz.com'
+  connectionString: '<database-connection-string>',
 })
 
 // connect to node-pq pool and start processing
@@ -43,11 +43,10 @@ programma.processJobs({ topicName: 'sendEmail', heartBeat: 10 }, async (job: IRe
 - Guarantee delivery of exactly to only one processor within the retry timeout period, without too much locking or effecting performance. Thanks to Postgres SKIP LOCK
 - Programma ensures a job is delivered and claimed by the processor with **retryAfterSeconds** logic until job status is changed. This parameter is customizable and you can use it for exponential backoff logic as well by changing the **retryAfterSeconds**
 - Received messages that are not changed to either Processing, Completed or FAILED state will appear again after retryAfterSecond timeout
-- Promised base API and TypeScript Typings
+- Promised base API, written in typescript and TypeScript Typings
 
 ## Use with Queuing
-Programma for us makes more sense to schedule task/work to be done and to track it's progress and state, not to fan-out or do the actual work. You can parallelize Programma by running on multiple different node processes giving maxJobs limit per heartbeat/interval where you can achieve horizontal scalability. Programma also handles schema/table creation so it could be used with a multiple PostgresDB to run the jobs. For parallelizing and doing the work you could use Redis based queue system like Bull or RSMQ using a shared Redis server multiple Node.js processes can send / receive messages
-
+Programma for us makes more sense to schedule task/work to be done and to track it's progress and state, not to fan-out or do the actual work. You can parallelize Programma by running on multiple different node processes giving maxJobs limit per heartbeat/interval where you can achieve horizontal scalability. Programma also handles schema/table creation so it could be used with a multiple PostgresDB to run the jobs. For parallelizing and doing the work you could use Redis based queue system like [**bull**](https://github.com/OptimalBits/bull) or [**rsmq**](https://github.com/smrchy/rsmq) using a shared Redis server multiple Node.js processes can send / receive messages
 **Following is an example to use it with awesome bull queue**
 ```ts
 var bullRedisQueue = new Queue('sendEmail', 'redis://127.0.0.1:6379');
