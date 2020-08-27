@@ -1,3 +1,5 @@
+import { PoolConfig } from 'pg'
+
 export interface IRunOpts {
   // run after seconds in number
   runAfterSeconds?: number
@@ -38,6 +40,15 @@ export interface IJobConfig extends IRunOpts {
   attributes?: {}
 }
 
+export interface IHandlerCallback {
+  (job: IReceiveJob): void
+}
+
+export interface IProgrammaConstructor {
+  new (config: PoolConfig, schemaName: string): IProgramma
+}
+
+
 export interface IProgramma {
   addJob(topicName: string, job: IJobConfig): Promise<string | null>
   receiveJobs(config: IReceiveMessageConfig, handler: IHandlerCallback): void
@@ -49,6 +60,4 @@ export interface IProgramma {
   shutdown(): void
 }
 
-export interface IHandlerCallback {
-  (job: IReceiveJob): void
-}
+declare var IProgramma: IProgrammaConstructor

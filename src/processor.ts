@@ -7,6 +7,8 @@ import {
 } from './interfaces'
 import { EventStates } from './constants'
 
+import { isNumber } from './bootstrap'
+
 export class Processor extends EventEmitter {
   private heartBeat: number
   private maxJobs: number
@@ -14,10 +16,12 @@ export class Processor extends EventEmitter {
   readonly handler: IHandlerCallback
   private isRunning: boolean
   private _timeout: any
-  constructor (config: IReceiveMessageConfig, handler: IHandlerCallback) {
+  private pgCommand: PgCommand
+  constructor (pgCommand: PgCommand, config: IReceiveMessageConfig, handler: IHandlerCallback) {
     super()
-    this.heartBeat = config.heartBeat || 5
-    this.maxJobs = config.maxJobs || 100
+    this.pgCommand = pgCommand
+    this.heartBeat = isNumber(config.heartBeat) ? config.heartBeat as number : 5
+    this.maxJobs = isNumber(config.maxJobs) ? config.maxJobs as number : 100
     this.topic = config.topicName
     this.handler = handler
     this.isRunning = false
@@ -28,7 +32,7 @@ export class Processor extends EventEmitter {
     this._timeout = setTimeout(async () => {
       if (!this.isRunning) return
       try {
-        const jobs = await PgCommand.getInstance().getJobsToBeProcessed(
+        const jobs = await this.pgCommand.getJobsToBeProcessed(
           this.topic,
           this.maxJobs
         )
@@ -39,6 +43,7 @@ export class Processor extends EventEmitter {
           attributes: r.attributes || {},
         } as IReceiveJob))
       } catch (e) {
+        console.error(e)
         this.emit(EventStates.ERROR, e)
       }
       this.poll()

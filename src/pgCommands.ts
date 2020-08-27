@@ -4,38 +4,34 @@ import { Pool, PoolConfig, QueryResult } from 'pg'
 import { JobStates, EventStates } from './constants'
 
 export class PgCommand extends EventEmitter {
-  private pool: Pool
+  private pool: Pool | null
   private schemaName: string
-  public static instance: PgCommand | null = null
-  private constructor (config: PoolConfig, schemaName: string) {
+  private config: PoolConfig
+
+  public constructor (config: PoolConfig, schemaName: string) {
     super()
-    this.pool = new Pool(config)
-    this.pool.on(EventStates.ERROR, (e) => this.emit(EventStates.ERROR, e))
+    this.pool = null
+    this.config = config
     this.schemaName = schemaName
   }
 
-  public static createInstance(config: PoolConfig, schemaName: string) {
-    if (!PgCommand.instance) {
-      PgCommand.instance = new PgCommand(config, schemaName)
-    }
-    return PgCommand.instance
+  public start() {
+    this.pool = new Pool(this.config)
+    this.pool.on(EventStates.ERROR, (e) => this.emit(EventStates.ERROR, e))
   }
 
-  public destroyInstance() {
-    this.pool.end()
-    PgCommand.instance = null
-  }
-
-  public static getInstance(): PgCommand {
-    return PgCommand.instance as PgCommand
+  public stop() {
+    this.pool?.end()
+    this.pool = null
   }
 
   public async migrate() {
+    let pool = this.pool as Pool
     try {
-      await this.pool.query('BEGIN')
-      await this.pool.query(`Create SCHEMA if not exists ${this.schemaName};`)
-      await this.pool.query(`Create SCHEMA if not exists ${this.schemaName};`)
-      await this.pool.query(`
+      await pool.query('BEGIN')
+      await pool.query(`Create SCHEMA if not exists ${this.schemaName};`)
+      await pool.query(`Create SCHEMA if not exists ${this.schemaName};`)
+      await pool.query(`
         create table if not exists ${this.schemaName}.jobs (
           id uuid primary key not null,
           name varchar(255) not null,
@@ -48,11 +44,11 @@ export class PgCommand extends EventEmitter {
           retry_after_seconds integer
         );
       `)
-      await this.pool.query(`CREATE INDEX if not exists get_jobs ON ${this.schemaName}.jobs (name, start_after, id)`)
-      await this.pool.query(`CREATE INDEX if not exists get_fifo_jobs ON ${this.schemaName}.jobs (start_after, id)`)
-      await this.pool.query('COMMIT')
+      await pool.query(`CREATE INDEX if not exists get_jobs ON ${this.schemaName}.jobs (name, start_after, id)`)
+      await pool.query(`CREATE INDEX if not exists get_fifo_jobs ON ${this.schemaName}.jobs (start_after, id)`)
+      await pool.query('COMMIT')
     } catch (e) {
-      await this.pool.query('ROLLBACK')
+      await pool.query('ROLLBACK')
     }
   }
 
@@ -63,7 +59,8 @@ export class PgCommand extends EventEmitter {
     startAfter: string | Date,
     retryAfterSeconds: number | null,
   ): Promise<QueryResult<any>> {
-    return this.pool.query(
+    let pool = this.pool as Pool
+    return pool.query(
       `
       INSERT INTO ${this.schemaName}.jobs (
         id, name, data, attributes, state, start_after, retry_after_seconds
@@ -77,7 +74,8 @@ export class PgCommand extends EventEmitter {
     id: string,
     state: JobStates
   ): Promise<QueryResult<any>> {
-    return this.pool.query(
+    let pool = this.pool as Pool
+    return pool.query(
       `
         Update ${this.schemaName}.jobs
         SET state = '${state}'
@@ -89,7 +87,8 @@ export class PgCommand extends EventEmitter {
   public deleteJob(
     id: string,
   ): Promise<QueryResult<any>> {
-    return this.pool.query(
+    let pool = this.pool as Pool
+    return pool.query(
       `
         Delete from ${this.schemaName}.jobs
         where id = '${id}'
@@ -101,7 +100,8 @@ export class PgCommand extends EventEmitter {
     name: string,
     limit: number,
   ): Promise<QueryResult<any>> {
-    return this.pool.query(
+    let pool = this.pool as Pool
+    return pool.query(
       `
         with claimJob as (
           SELECT id
