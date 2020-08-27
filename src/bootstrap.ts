@@ -27,7 +27,7 @@ export const parseAddJobConfig = (config: IJobConfig): IJobConfig => {
     config.runAfterDate = new Date().toISOString()
   }
 
-  config.markFailAfterSeconds = isNumber(config.markFailAfterSeconds) ? config.markFailAfterSeconds : null
+  config.retryAfterSeconds = isNumber(config.retryAfterSeconds) ? config.retryAfterSeconds : 30
   return config
 }
 

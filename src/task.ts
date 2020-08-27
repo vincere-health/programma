@@ -1,20 +1,23 @@
+import { EventEmitter } from 'events'
 import { PgCommand } from './pgCommands'
 import {
   IReceiveMessageConfig,
   IHandlerCallback,
   IReceiveJob,
 } from './interfaces'
+import { EventStates } from './constants'
 
-export class Task {
+export class Processor extends EventEmitter {
   private heartBeat: number
-  private maxMessages: number
+  private maxJobs: number
   private topic: string
   readonly handler: IHandlerCallback
   private isRunning: boolean
   private _timeout: any
   constructor (config: IReceiveMessageConfig, handler: IHandlerCallback) {
+    super()
     this.heartBeat = config.heartBeat || 5
-    this.maxMessages = config.maxMessages || 100
+    this.maxJobs = config.maxJobs || 100
     this.topic = config.topicName
     this.handler = handler
     this.isRunning = false
@@ -23,22 +26,22 @@ export class Task {
 
   private poll() {
     this._timeout = setTimeout(async () => {
-      console.log('running loop')
+      if (!this.isRunning) return
       try {
         const jobs = await PgCommand.getInstance().getJobsToBeProcessed(
           this.topic,
-          this.maxMessages
+          this.maxJobs
         )
         // console.log(jobs)
         jobs.rows.map(r => this.handler({
           id: r.id,
           data: r.data,
-          attributes: r.opts || {},
+          attributes: r.attributes || {},
         } as IReceiveJob))
       } catch (e) {
-        console.log('something went wrong while polling')
+        this.emit(EventStates.ERROR, e)
       }
-      this.isRunning && this.poll()
+      this.poll()
     }, this.heartBeat * 1000)
   }
 

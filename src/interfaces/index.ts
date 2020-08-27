@@ -6,12 +6,13 @@ export interface IRunOpts {
   runAfterDate?: string | Date
 
   // mark job as failed after seconds
-  markFailAfterSeconds?: number | null
+  retryAfterSeconds?: number | null
 }
 
 export interface IReceiveMessageConfig {
-  // max batch of messages will be received
-  maxMessages?: number
+  // maximum number of messages polled per hear beat interval
+  // even though the handler will be executed independently per job
+  maxJobs?: number
 
   // heart beat in seconds
   heartBeat?: number
@@ -38,11 +39,14 @@ export interface IJobConfig extends IRunOpts {
 }
 
 export interface IProgramma {
-  // enqueue will return jobId
   addJob(topicName: string, job: IJobConfig): Promise<string | null>
-
-  // batch size will be configured here
   receiveJobs(config: IReceiveMessageConfig, handler: IHandlerCallback): void
+  deleteJob(id: string): Promise<boolean>
+  moveJobToProcessing(id: string): Promise<boolean>
+  moveJobToDone(id: string, deleteOnComplete: boolean): Promise<boolean>
+  moveJobToFailed(id: string, deleteOnFail: boolean): Promise<boolean>
+  start(): Promise<void>
+  shutdown(): void
 }
 
 export interface IHandlerCallback {

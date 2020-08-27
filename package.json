@@ -1,12 +1,12 @@
 {
   "name": "programma",
   "version": "0.0.1",
-  "description": "",
+  "description": "Following is the usage for Programma",
   "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "hadi javeed",
   "license": "ISC",
   "devDependencies": {
     "@types/invariant": "^2.2.33",
@@ -22,5 +22,13 @@
     "invariant": "^2.2.4",
     "pg": "^8.3.2",
     "uuid": "^8.3.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vincere-health/programma.git"
+  },
+  "bugs": {
+    "url": "https://github.com/vincere-health/programma/issues"
+  },
+  "homepage": "https://github.com/vincere-health/programma#readme"
 }
