@@ -6,9 +6,15 @@ const programma1 = new Programma({
   user: 'vinceredevuser',
   password: 'smokingVincere',
   database: 'postgres',
-  max: 50
+  max: 50,
 }, 'jobsSchema')
 
+
+programma1.addJob('sendSms', {
+  runAfterDate
+})
+
+programma1.moveJobToProcessing
 // programma1.on('error', e => {
 //   console.log('program1 error ', e)
 // })
