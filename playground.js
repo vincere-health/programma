@@ -2,19 +2,10 @@ const { Programma } = require('./dist')
 
 
 const programma1 = new Programma({
-  host: 'dev-db-vincere.caqv06asifia.us-east-2.rds.amazonaws.com',
-  user: 'vinceredevuser',
-  password: 'smokingVincere',
-  database: 'postgres',
+  connectionString: `postgres://hadijaveed:@localhost:5432/postgres`,
   max: 50,
 }, 'jobsSchema')
 
-
-programma1.addJob('sendSms', {
-  runAfterDate
-})
-
-programma1.moveJobToProcessing
 // programma1.on('error', e => {
 //   console.log('program1 error ', e)
 // })
@@ -34,7 +25,7 @@ programma1.moveJobToProcessing
 function addtasks (instance, topic) {
   console.time('enqueue')
   Promise.all(
-    Array(20).fill(0)
+    Array(1000).fill(0)
     .map((_, i) => (
       instance.addJob(
         topic,
@@ -66,7 +57,7 @@ programma1.start(true).then(() => {
 //   addtasks(programma2, 'smsWorker')
 // })
 
-programma1.receiveJobs({ topicName: '132132' }, async (job) => {
+programma1.receiveJobs({ topicName: 'smsWorker' }, async (job) => {
   console.log('worker 1 ', job.id, job.data, job.attributes)
   // await programma1.moveJobToProcessing(job.id)
 })

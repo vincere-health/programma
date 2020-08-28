@@ -112,6 +112,7 @@ export class Programma extends events.EventEmitter implements IProgramma {
     } catch (e) {
       console.error(e)
       this.emitState(EventStates.ERROR, e)
+      this.pgCommand.stop()
     }
   }
 
