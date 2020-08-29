@@ -1,5 +1,4 @@
 import { EventEmitter } from 'events'
-import * as uuid from 'uuid'
 import { Pool, PoolConfig, QueryResult } from 'pg'
 import { JobStates, EventStates } from './constants'
 
@@ -31,20 +30,21 @@ export class PgCommand extends EventEmitter {
       await pool.query('BEGIN')
       await pool.query(`Create SCHEMA if not exists ${this.schemaName};`)
       await pool.query(`Create SCHEMA if not exists ${this.schemaName};`)
+      await pool.query(`Create extension if not exists pgcrypto;`)
       await pool.query(`
         create table if not exists ${this.schemaName}.jobs (
-          id uuid primary key not null,
-          name varchar(255) not null,
+          id uuid primary key not null default gen_random_uuid(),
+          topicName text not null,
           data jsonb,
           attributes jsonb,
-          state  varchar(255) not null default('created'),
+          state varchar(255) not null default('created'),
           start_after timestamp with time zone not null default now(),
           started_at timestamp with time zone,
           created_at timestamp with time zone default now(),
-          retry_after_seconds integer
+          retry_after_seconds int
         );
       `)
-      await pool.query(`CREATE INDEX if not exists get_jobs ON ${this.schemaName}.jobs (name, start_after, id)`)
+      await pool.query(`CREATE INDEX if not exists get_jobs ON ${this.schemaName}.jobs (topicName, start_after, id)`)
       await pool.query(`CREATE INDEX if not exists get_fifo_jobs ON ${this.schemaName}.jobs (start_after, id)`)
       await pool.query('COMMIT')
     } catch (e) {
@@ -53,7 +53,7 @@ export class PgCommand extends EventEmitter {
   }
 
   public addJob(
-    name: string,
+    topicName: string,
     data: {},
     opts: {},
     startAfter: string | Date,
@@ -63,10 +63,10 @@ export class PgCommand extends EventEmitter {
     return pool.query(
       `
       INSERT INTO ${this.schemaName}.jobs (
-        id, name, data, attributes, state, start_after, retry_after_seconds
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id
+        topicName, data, attributes, state, start_after, retry_after_seconds
+      ) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id
       `,
-      [uuid.v4(), name, data, opts, JobStates.CREATED, startAfter, retryAfterSeconds]
+      [topicName, data, opts, JobStates.CREATED, startAfter, retryAfterSeconds]
     )
   }
 
@@ -79,6 +79,23 @@ export class PgCommand extends EventEmitter {
       `
         Update ${this.schemaName}.jobs
         SET state = '${state}'
+        where id = '${id}'
+      `
+    )
+  }
+
+  public ping(): Promise<QueryResult<any>> {
+    let pool = this.pool as Pool
+    return pool.query(`Select now();`)
+  }
+
+  public getJobDetails(
+    id: string,
+  ): Promise<QueryResult<any>> {
+    let pool = this.pool as Pool
+    return pool.query(
+      `
+        Select * from ${this.schemaName}.jobs
         where id = '${id}'
       `
     )
@@ -97,7 +114,7 @@ export class PgCommand extends EventEmitter {
   }
 
   public getJobsToBeProcessed(
-    name: string,
+    topicName: string,
     limit: number,
   ): Promise<QueryResult<any>> {
     let pool = this.pool as Pool
@@ -108,11 +125,11 @@ export class PgCommand extends EventEmitter {
           FROM ${this.schemaName}.jobs
           WHERE (
             state = '${JobStates.CREATED}'
-            AND name = $1
+            AND topicName = $1
             AND start_after < now()
           ) OR (
             state = '${JobStates.ACTIVE}'
-            AND name = $1
+            AND topicName = $1
             AND retry_after_seconds is not null
             AND retry_after_seconds < EXTRACT(EPOCH FROM (now() - started_at))
           )
@@ -127,7 +144,7 @@ export class PgCommand extends EventEmitter {
         where job.id = claimJob.id
         Returning job.id, job.data, job.attributes;
       `,
-      [name, limit]
+      [topicName, limit]
     )
   }
 }

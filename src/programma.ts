@@ -13,6 +13,7 @@ import {
   IReceiveMessageConfig,
   IHandlerCallback,
   IJobConfig,
+  IJobDetail,
 } from './interfaces'
 import { JobStates, EventStates } from './constants'
 
@@ -20,7 +21,7 @@ import { JobStates, EventStates } from './constants'
 export class Programma extends events.EventEmitter implements IProgramma {
   private processors: Map<string, Processor>
   private _started: boolean
-  private pgCommand: PgCommand
+  public pgCommand: PgCommand
 
   private async moveJobToState(id: string, state: JobStates): Promise<boolean> {
     const r = await this.pgCommand.changeJobState(id, state)
@@ -88,22 +89,32 @@ export class Programma extends events.EventEmitter implements IProgramma {
   }
 
   public async moveJobToDone(id: string, deleteOnComplete: boolean = false): Promise<boolean> {
-    if (!this._started) return false
     if (deleteOnComplete) return this.deleteJob(id)
     return this.moveJobToState(id, JobStates.COMPLETED)
   }
 
   public async moveJobToFailed(id: string, deleteOnFail: boolean = false): Promise<boolean> {
-    if (!this._started) return false
     if (deleteOnFail) return this.deleteJob(id)
     return this.moveJobToState(id, JobStates.FAILED)
   }
 
-  public async start(withMigration = false) {
+  public async getJob(id: string): Promise<IJobDetail | null> {
+    if (!this._started) return null
+    try {
+      const job = await this.pgCommand.getJobDetails(id)
+      return job.rowCount ? job.rows[0] as IJobDetail : null
+    } catch (e) {
+      console.error(e)
+      this.emitState(EventStates.ERROR, e)
+      return null
+    }
+  }
+
+  public async start(withMigration = true) {
     this.pgCommand.start()
     this.bindEventListeners(this.pgCommand)
     try {
-      if (withMigration) await this.pgCommand.migrate()
+      withMigration ? await this.pgCommand.migrate() : await this.pgCommand.ping()
       for (let processor of this.processors.values()) {
         processor.start()
         this.bindEventListeners(processor)
@@ -112,7 +123,6 @@ export class Programma extends events.EventEmitter implements IProgramma {
     } catch (e) {
       console.error(e)
       this.emitState(EventStates.ERROR, e)
-      this.pgCommand.stop()
     }
   }
 

@@ -6,22 +6,6 @@ const programma1 = new Programma({
   max: 50,
 }, 'jobsSchema')
 
-// programma1.on('error', e => {
-//   console.log('program1 error ', e)
-// })
-
-// const programma2 = new Programma({
-//   host: 'dev-db-vincere.caqv06asifia.us-east-2.rds.amazonaws.com',
-//   user: 'vinceredevuser',
-//   password: 'smokingVincere',
-//   database: 'postgres',
-//   max: 50
-// }, 'jobsSchema')
-
-// programma1.on('error', e => {
-//   console.log('program2 error ', e)
-// })
-
 function addtasks (instance, topic) {
   console.time('enqueue')
   Promise.all(
@@ -44,13 +28,15 @@ function addtasks (instance, topic) {
   )
   .then(m => {
     console.log(m)
-    console.timeEnd('enqueue')
   })
   .catch(console.error)  
 }
 
 programma1.start(true).then(() => {
-  addtasks(programma1, 'smsWorker')
+  // addtasks(programma1, 'smsWorker')
+  programma1.getJob('c1358556-78b5-4703-ac0e-7a63887baff7')
+    .then(console.log)
+    .catch(console.error)
 })
 
 // programma2.start(true).then(() => {
@@ -59,7 +45,7 @@ programma1.start(true).then(() => {
 
 programma1.receiveJobs({ topicName: 'smsWorker' }, async (job) => {
   console.log('worker 1 ', job.id, job.data, job.attributes)
-  // await programma1.moveJobToProcessing(job.id)
+  await programma1.moveJobToProcessing(job.id)
 })
 
 // programma2.receiveJobs({ topicName: 'smsWorker', maxJobs: 2, heartBeat: 1 }, async (job) => {

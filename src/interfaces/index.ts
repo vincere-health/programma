@@ -1,4 +1,5 @@
 import { PoolConfig } from 'pg'
+import { JobStates } from '../constants'
 
 export interface IRunOpts {
   // run after seconds in number
@@ -40,6 +41,18 @@ export interface IJobConfig extends IRunOpts {
   attributes?: {}
 }
 
+export interface IJobDetail {
+  id: string
+  topicName: string
+  data: Object
+  attributes: Object
+  state: JobStates
+  start_after: string
+  started_at: string | null
+  created_at: string
+  retry_after_seconds: number
+}
+
 export interface IHandlerCallback {
   (job: IReceiveJob): void
 }
@@ -56,6 +69,7 @@ export interface IProgramma {
   moveJobToProcessing(id: string): Promise<boolean>
   moveJobToDone(id: string, deleteOnComplete: boolean): Promise<boolean>
   moveJobToFailed(id: string, deleteOnFail: boolean): Promise<boolean>
+  getJob(id: string): Promise<IJobDetail | null>
   start(): Promise<void>
   shutdown(): void
 }
