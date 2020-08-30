@@ -1,12 +1,24 @@
 {
   "name": "programma",
   "version": "0.0.2",
-  "description": "Following is the usage for Programma",
+  "description": "A light weight, customizable, simple FIFO Queue backed by PostgresSQL",
   "main": "dist/index.js",
   "scripts": {
     "test": "mocha -r ts-node/register test/**/*.test.ts test/teardown.ts"
   },
-  "author": "hadi javeed",
+  "author": "hadi javeed <hadij.pk@gmail.com>",
+  "keywords": [
+    "postgresql",
+    "postgres",
+    "pg",
+    "jobs",
+    "scheduling",
+    "fifo",
+    "queue",
+    "customizable",
+    "delayed",
+    "tasks"
+  ],
   "license": "ISC",
   "devDependencies": {
     "@types/chai": "^4.2.12",
