@@ -2,8 +2,9 @@ import * as chai from 'chai'
 import * as sinon from 'sinon'
 import { Programma } from '../src/'
 
-import { IReceiveMessageConfig, IHandlerCallback } from '../src/interfaces/'
-import { dbConnectionString, testSchema } from './fixtures'
+import { IReceiveMessageConfig, IHandlerCallback } from '../src'
+import { dbConnectionString, testSchema } from './cfg'
+import { JobStates } from '../src/constants'
 
 import { setTimeoutPromise } from './utils'
 const { expect } = chai
@@ -20,11 +21,6 @@ describe('receive jobs', () => {
   afterEach(() => {
     programma.shutdown()
   })
-
-  // after(() => {
-  //   console.log('shutdown called ?')
-  //   programma.shutdown()
-  // })
 
   it('should emit error if topicName is not provided', async () => {
     const spy = sinon.spy()
@@ -73,4 +69,43 @@ describe('receive jobs', () => {
     await setTimeoutPromise(1050)
     expect(spy.calledTwice).eq(true)
   })
+
+  it('job should become active when run after seconds are given', async () => {
+    const jobId = await programma.addJob('afterSeconds', {
+      data: { cool: '123 '},
+      runAfterSeconds: 5,
+    })
+    const spy = sinon.spy()
+    programma.receiveJobs({ topicName: 'afterSeconds', heartBeat: 1 }, spy)
+    await setTimeoutPromise(5100)
+    expect(spy.calledOnce).eq(true)
+    const jobDetails = await programma.getJob(jobId as string)
+    expect(jobDetails?.state).to.eq(JobStates.ACTIVE)
+  }).timeout(6000)
+
+  it('job should become active when run after date is given as string is given are given', async () => {
+    const date = new Date()
+    date.setSeconds(date.getSeconds() + 5)
+    const jobId = await programma.addJob('runAfterTime', {
+      data: { cool: '123 '},
+      runAfterDate: date.toISOString(),
+    })
+    const spy = sinon.spy()
+    programma.receiveJobs({ topicName: 'runAfterTime', heartBeat: 1 }, spy)
+    await setTimeoutPromise(5100)
+    expect(spy.calledOnce).eq(true)
+    const jobDetails = await programma.getJob(jobId as string)
+    expect(jobDetails?.state).to.eq(JobStates.ACTIVE)
+  }).timeout(6000)
+
+  it('job is retried after the given retry interval if the state of job is not changed', async () => {
+    await programma.addJob('runAfterTime', {
+      data: { cool: '123 '},
+      retryAfterSeconds: 2,
+    })
+    const spy = sinon.spy()
+    programma.receiveJobs({ topicName: 'runAfterTime', heartBeat: 1 }, spy)
+    await setTimeoutPromise(3100)
+    expect(spy.calledTwice).eq(true)
+  }).timeout(6000)
 })

@@ -1,5 +1,5 @@
 import { Programma } from '../src'
-import { testSchema, dbConnectionString } from './fixtures'
+import { testSchema, dbConnectionString } from './cfg'
 
 export const dropSchema = async () => {
   const programma = new Programma({

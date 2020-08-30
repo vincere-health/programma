@@ -1,7 +1,7 @@
 import * as chai from 'chai'
 import * as sinon from 'sinon'
 import { Programma } from '../src/'
-import { dbConnectionString, dbConnectionObject, testSchema } from './fixtures'
+import { dbConnectionString, dbConnectionObject, testSchema } from './cfg'
 
 const { expect } = chai
 

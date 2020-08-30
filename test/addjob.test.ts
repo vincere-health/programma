@@ -6,7 +6,7 @@ import { IJobConfig } from '../src/interfaces/'
 import {
   RETRY_AFTER_SECONDS
 } from '../src/constants'
-import { dbConnectionString, testSchema } from './fixtures'
+import { dbConnectionString, testSchema } from './cfg'
 
 const { expect } = chai
 
