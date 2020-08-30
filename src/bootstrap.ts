@@ -1,5 +1,6 @@
 import * as invariant from 'invariant'
 import { IJobConfig, IReceiveMessageConfig, IHandlerCallback } from './interfaces'
+import { RETRY_AFTER_SECONDS } from './constants'
 
 export const exists = (a: any) => typeof a !== 'undefined' && a !== null
 export const isNumber = (a: any) => typeof a === 'number'
@@ -26,7 +27,9 @@ export const parseAddJobConfig = (config: IJobConfig): IJobConfig => {
     config.runAfterDate = new Date().toISOString()
   }
 
-  config.retryAfterSeconds = isNumber(config.retryAfterSeconds) ? config.retryAfterSeconds : 30
+  config.retryAfterSeconds = isNumber(config.retryAfterSeconds)
+    ? config.retryAfterSeconds
+    : RETRY_AFTER_SECONDS
   return config
 }
 

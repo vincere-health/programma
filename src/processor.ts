@@ -16,11 +16,12 @@ export class Processor extends EventEmitter {
   readonly handler: IHandlerCallback
   private isRunning: boolean
   private _timeout: any
-  private pgCommand: PgCommand
+  public pgCommand: PgCommand
   constructor (pgCommand: PgCommand, config: IReceiveMessageConfig, handler: IHandlerCallback) {
     super()
     this.pgCommand = pgCommand
-    this.heartBeat = isNumber(config.heartBeat) ? config.heartBeat as number : 5
+    this.heartBeat = isNumber(config.heartBeat) && config.heartBeat as number >= 1
+      ? config.heartBeat as number : 5
     this.maxJobs = isNumber(config.maxJobs) ? config.maxJobs as number : 100
     this.topic = config.topicName
     this.handler = handler

@@ -4,7 +4,7 @@
   "description": "Following is the usage for Programma",
   "main": "dist/index.js",
   "scripts": {
-    "test": "mocha -r ts-node/register test/**/*.test.ts"
+    "test": "mocha -r ts-node/register test/**/*.test.ts test/teardown.ts"
   },
   "author": "hadi javeed",
   "license": "ISC",

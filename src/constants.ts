@@ -8,6 +8,8 @@ export enum JobStates {
   CANCELLED = 'cancelled',
 }
 
+export const RETRY_AFTER_SECONDS = 30
+
 
 export enum EventStates {
   ERROR = 'error',

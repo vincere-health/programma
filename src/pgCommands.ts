@@ -3,7 +3,7 @@ import { Pool, PoolConfig, QueryResult } from 'pg'
 import { JobStates, EventStates } from './constants'
 
 export class PgCommand extends EventEmitter {
-  private pool: Pool | null
+  public pool: Pool | null
   private schemaName: string
   private config: PoolConfig
 
