@@ -212,6 +212,21 @@ export interface IJobDetail {
 ### move to status methods
 All the change status methods follows very self descriptive interface. For moveJobToDone, moveJobToFailed if a seconds boolean parameter true is passed it will delete the job from table
 
+### SQL Jobs Table
+```sql
+create table if not exists ${this.schemaName}.jobs (
+  id uuid primary key not null default gen_random_uuid(),
+  topicName text not null,
+  data jsonb,
+  attributes jsonb,
+  state varchar(255) not null default('created'),
+  start_after timestamp with time zone not null default now(),
+  started_at timestamp with time zone,
+  created_at timestamp with time zone default now(),
+  retry_after_seconds int
+);
+```
+
 
 ## Meta
 **Author: hadi@vincere.health**
