@@ -79,7 +79,7 @@ bullRedisQueue.on('failed', (id, error) => {
   const job = await bullRedisQueue.getJob(id)
   await programma.moveJobToFailed(jod.data.id)
   // also can track error in SQL
-  await programma.addToAttributes('error', error)
+  await programma.setAttributes(job.id, { error: error })
 })
 ```
 ## Use without Queuing
@@ -104,7 +104,7 @@ programma.processJobs({ topicName: 'sendPushNotification', heartBeat: 10, maxJob
     await programma.moveJobToDone(job.id)
   } catch (e) {
     // set the retry counter
-    await programma.setAttributes({ attempts: attempts ? attempts + 1 : 1 })
+    await programma.setAttributes(job.id, { attempts: attempts ? attempts + 1 : 1 })
     await programma.setRetryAfterSeconds(60)
   }
 })
@@ -162,7 +162,7 @@ export interface IJobConfig {
   // either Date constructor or ISO8601 format
   runAfterDate?: string | Date
 
-  // mark job as failed after seconds
+  // re-run the job after seconds. default is 30seconds
   retryAfterSeconds?: number | null
 }
 ```
@@ -210,7 +210,17 @@ export interface IJobDetail {
 ```
 
 ### move to status methods
-All the change status methods follows very self descriptive interface. For moveJobToDone, moveJobToFailed if a seconds boolean parameter true is passed it will delete the job from table
+All the change status methods follows very self descriptive interface. For moveJobToDone, moveJobToFailed if a seconds boolean parameter true is passed it will delete the job from table. Following are the job states
+```ts
+export enum JobStates {
+  CREATED = 'created',
+  ACTIVE = 'active',
+  PROCESSING = 'processing',
+  FAILED = 'failed',
+  COMPLETED = 'completed',
+}
+```
+Message will initially be in created state. It will be moved to ACTIVE state at the right time for message to be run. After that message will remain in ACTIVE state and will be retried after the retry_after_seconds if the message is not moved to a different state from ACTIVE.
 
 ### SQL Jobs Table
 ```sql
