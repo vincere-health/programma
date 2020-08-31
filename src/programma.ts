@@ -17,6 +17,7 @@ import {
   IJobDetail,
 } from './interfaces'
 import { JobStates, EventStates } from './constants'
+import { isObject } from './bootstrap'
 
 
 export class Programma extends events.EventEmitter implements IProgramma {
@@ -76,6 +77,12 @@ export class Programma extends events.EventEmitter implements IProgramma {
       console.error(e)
       this.emitState(EventStates.ERROR, e)
     }
+  }
+
+  public async setAttributes(id: string, attributes: object): Promise<boolean> {
+    if (!this._started || !isObject(attributes)) return false
+    const r = await this.pgCommand.setAttributes(id, attributes)
+    return r.rowCount ? true : false
   }
 
   public async deleteJob(id: string): Promise<boolean> {

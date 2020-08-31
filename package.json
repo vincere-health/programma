@@ -1,8 +1,9 @@
 {
   "name": "programma",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "A light weight, customizable, simple FIFO Queue backed by PostgresSQL",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "test": "mocha -r ts-node/register test/**/*.test.ts test/teardown.ts"
   },

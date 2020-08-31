@@ -36,6 +36,10 @@ programma1.start(true).then(() => {
   programma1.getJob('c1358556-78b5-4703-ac0e-7a63887baff7')
     .then(console.log)
     .catch(console.error)
+
+  programma1.setAttributes('c1358556-78b5-4703-ac0e-7a63887baff7', { cool: 123, nice: 'shit' })
+    .then(console.log)
+    .catch(console.error)
 })
 
 // programma2.start(true).then(() => {
@@ -53,14 +57,14 @@ programma1.receiveJobs({ topicName: 'smsWorker' }, async (job) => {
 // })
 
 
-setTimeout(() => {
-  console.log('shutting down')
-  programma1.shutdown()
-  setTimeout(() => {
-    console.log('starting again')
-    programma1.start()
-  }, 5000)
-}, 10000)
+// setTimeout(() => {
+//   console.log('shutting down')
+//   programma1.shutdown()
+//   setTimeout(() => {
+//     console.log('starting again')
+//     programma1.start()
+//   }, 5000)
+// }, 10000)
 
 
 

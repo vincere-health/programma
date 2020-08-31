@@ -84,6 +84,18 @@ export class PgCommand extends EventEmitter {
     )
   }
 
+  public setAttributes(
+    id: string,
+    attributes: object = {},
+  ): Promise<QueryResult<any>> {
+    let pool = this.pool as Pool
+    return pool.query(`
+      Update ${this.schemaName}.jobs
+      SET attributes = (attributes || '${JSON.stringify(attributes)}'::jsonb)
+      where id = '${id}'
+    `)
+  }
+
   public ping(): Promise<QueryResult<any>> {
     let pool = this.pool as Pool
     return pool.query(`Select now();`)

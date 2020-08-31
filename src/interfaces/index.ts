@@ -72,6 +72,7 @@ export interface IProgramma {
   moveJobToDone(id: string, deleteOnComplete: boolean): Promise<boolean>
   moveJobToFailed(id: string, deleteOnFail: boolean): Promise<boolean>
   getJob(id: string): Promise<IJobDetail | null>
+  setAttributes(id: string, attributes: object): Promise<boolean>
   start(): Promise<void>
   shutdown(): void
 }
