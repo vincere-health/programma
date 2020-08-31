@@ -1,6 +1,6 @@
 {
   "name": "programma",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A light weight, customizable, simple FIFO Queue backed by PostgresSQL",
   "main": "dist/index.js",
   "scripts": {

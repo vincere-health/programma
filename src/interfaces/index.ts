@@ -57,8 +57,10 @@ export interface IHandlerCallback {
   (job: IReceiveJob): void
 }
 
+export interface DbConfig extends PoolConfig {}
+
 export interface IProgrammaConstructor {
-  new (config: PoolConfig, schemaName: string): IProgramma
+  new (config: DbConfig, schemaName: string): IProgramma
 }
 
 

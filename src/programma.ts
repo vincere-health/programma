@@ -1,5 +1,5 @@
 import * as events from 'events'
-import { PoolConfig, QueryResult } from 'pg'
+import { QueryResult } from 'pg'
 
 import { Processor } from './processor'
 import { PgCommand } from './pgCommands'
@@ -9,6 +9,7 @@ import {
 } from './bootstrap'
 
 import {
+  DbConfig,
   IProgramma,
   IReceiveMessageConfig,
   IHandlerCallback,
@@ -28,7 +29,7 @@ export class Programma extends events.EventEmitter implements IProgramma {
     return r.rowCount ? true : false
   }
 
-  constructor (config: PoolConfig, schemaName = 'programma') {
+  constructor (config: DbConfig, schemaName = 'programma') {
     super()
     this.pgCommand = new PgCommand(config, schemaName)
     this.processors = new Map()

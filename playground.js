@@ -1,6 +1,5 @@
 const { Programma } = require('./dist')
 
-
 const programma1 = new Programma({
   connectionString: `postgres://hadijaveed:@localhost:5432/postgres`,
   max: 50,
