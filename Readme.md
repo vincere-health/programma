@@ -2,9 +2,9 @@
 _A light weight, simple FIFO Queue backed by PostgresSQL for delayed tasks._
 
 ## Motivation
-- Long scheduling jobs in future is hard to achieve using some of the cloud providers distributed queues e.g, SQS with an upper limit of 12hour visibility timeout. For long scheduled tasks message needs to be picked up and delayed again
+- Long scheduling jobs in future is hard to achieve using some of the most reliable distributed queues e.g, SQS with an upper limit of 12 hours visibility timeout. For long scheduled tasks message needs to be picked up and delayed again depending on how long in the future a job is scheduled
 - Redis pub/sub model with delay time suits really well for scheduling jobs. But the problem is it is not backed by disk. It works really well for the immediate jobs where you need high throughput, but to keep jobs that has to run way in the future consumes lots of memory and it is costly
-- While Redis cluster and cloud provider's distributed queues elegantly solves scaling challenges, sometimes use-case is to track these jobs in one place for simplicity, like SQL/NoSQL store without too much effort. We attempt to track job states in Postgres through Programma
+- While Redis cluster and cloud provided distributed queues elegantly solves scaling challenges, sometimes use-case is to track these jobs in one place for simplicity, like SQL/NoSQL store without too much effort in a common schema model. We attempt to track job states in Postgres through Programma
 - Programma goal is not to implement a solid Job Worker logic. You could use it as your end-to-end job processor for simpler low latency tasks, but we recommend to use Redis, RabbitMQ or a queue like SQS for fanning out or distributing the workload to them through Programma
 - The goal of Programma is to expose a very flexible and simple API. Where client could nudge the job processing lifecycle by calling utility methods without us dictating specific lifecycle of a job
 
@@ -105,6 +105,7 @@ programma.processJobs({ topicName: 'sendPushNotification', heartBeat: 10, maxJob
   } catch (e) {
     // set the retry counter
     await programma.setAttributes(job.id, { attempts: attempts ? attempts + 1 : 1 })
+    // use this for constant retry delay, exponential back-off or a combination thereof
     await programma.setRetryAfterSeconds(60)
   }
 })
@@ -156,10 +157,10 @@ export interface IJobConfig {
   // job calls will expose a method to run these attributes for downstream system
   attributes?: {}
 
-  // run after seconds in number
+  // run after seconds
   runAfterSeconds?: number
 
-  // either Date constructor or ISO8601 format
+  // ISO8601 format String or Date. Use UTC ISO8601 format to avoid inconsistency
   runAfterDate?: string | Date
 
   // re-run the job after seconds. default is 30seconds
@@ -168,18 +169,20 @@ export interface IJobConfig {
 ```
 
 if runAfterDate or runAfterSeconds is not provided currentTime will be picked by default so job could be run in next pooling interval
+Job uuid will be returning on success
 
 ### receiveJobs(config: IReceiveMessageConfig, handler: IHandlerCallback): void
 ```ts
 export interface IReceiveMessageConfig {
-  // maximum number of messages polled per hear beat interval
+  // maximum number of messages polled per scheduled interval
   // even though the handler will be executed independently per job
   maxJobs?: number
 
-  // heart beat in seconds
+  // poll interval in seconds. has to be greater of equal to 1
+  // default poll interval is 5seconds
   heartBeat?: number
 
-  // name of the queue topic. this is required feild
+  // name of the queue topic. this is required field
   topicName: string
 }
 
@@ -236,6 +239,10 @@ create table if not exists ${this.schemaName}.jobs (
   retry_after_seconds int
 );
 ```
+
+## Next Steps
+- Create API for queue/job metrics
+- TTL (Time to Live) for failed/completed job to be cleaned up configured per topic
 
 
 ## Meta
