@@ -99,13 +99,13 @@ describe('receive jobs', () => {
   }).timeout(6000)
 
   it('job is retried after the given retry interval if the state of job is not changed', async () => {
-    await programma.addJob('runAfterTime', {
+    await programma.addJob('retryAfterSeconds', {
       data: { cool: '123 '},
       retryAfterSeconds: 2,
     })
     const spy = sinon.spy()
-    programma.receiveJobs({ topicName: 'runAfterTime', heartBeat: 1 }, spy)
-    await setTimeoutPromise(3100)
-    expect(spy.calledTwice).eq(true)
-  }).timeout(6000)
+    programma.receiveJobs({ topicName: 'retryAfterSeconds', heartBeat: 1 }, spy)
+    await setTimeoutPromise(3000)
+    expect(spy.calledOnce).eq(true)
+  }).timeout(3500)
 })
