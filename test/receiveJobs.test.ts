@@ -77,11 +77,11 @@ describe('receive jobs', () => {
     })
     const spy = sinon.spy()
     programma.receiveJobs({ topicName: 'afterSeconds', heartBeat: 1 }, spy)
-    await setTimeoutPromise(5100)
+    await setTimeoutPromise(6000)
     expect(spy.calledOnce).eq(true)
     const jobDetails = await programma.getJob(jobId as string)
     expect(jobDetails?.state).to.eq(JobStates.ACTIVE)
-  }).timeout(6000)
+  }).timeout(6200)
 
   it('job should become active when run after date is given as string is given are given', async () => {
     const date = new Date()
@@ -105,7 +105,7 @@ describe('receive jobs', () => {
     })
     const spy = sinon.spy()
     programma.receiveJobs({ topicName: 'retryAfterSeconds', heartBeat: 1 }, spy)
-    await setTimeoutPromise(3000)
-    expect(spy.calledOnce).eq(true)
+    await setTimeoutPromise(3200)
+    expect(spy.calledTwice).eq(true)
   }).timeout(3500)
 })
