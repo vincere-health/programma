@@ -18,6 +18,7 @@ import {
 } from './interfaces'
 import { JobStates, EventStates } from './constants'
 import { isObject } from './bootstrap'
+import { isNumber } from 'util'
 
 
 export class Programma extends events.EventEmitter implements IProgramma {
@@ -82,6 +83,18 @@ export class Programma extends events.EventEmitter implements IProgramma {
   public async setAttributes(id: string, attributes: object): Promise<boolean> {
     if (!this._started || !isObject(attributes)) return false
     const r = await this.pgCommand.setAttributes(id, attributes)
+    return r.rowCount ? true : false
+  }
+
+  public async setRetryAfterSeconds(id: string, seconds: number): Promise<boolean> {
+    if (!this._started || !isNumber(seconds) || seconds < 1) return false
+    const r = await this.pgCommand.setRetryAfterSeconds(id, seconds)
+    return r.rowCount ? true : false
+  }
+
+  public async setJobStartDate(id: string, startDate: string | Date): Promise<boolean> {
+    if (!this._started) return false
+    const r = await this.pgCommand.setJobStartTime(id, startDate)
     return r.rowCount ? true : false
   }
 

@@ -40,6 +40,16 @@ programma1.start(true).then(() => {
   programma1.setAttributes('c1358556-78b5-4703-ac0e-7a63887baff7', { cool: 123, nice: 'shit' })
     .then(console.log)
     .catch(console.error)
+
+  programma1.setRetryAfterSeconds('c1358556-78b5-4703-ac0e-7a63887baff7', 0)
+    .then(console.log)
+    .catch(console.error)
+
+  console.log('see date ', new Date().toISOString())
+
+  programma1.setJobStartDate('c1358556-78b5-4703-ac0e-7a63887baff7', new Date())
+    .then(console.log)
+    .catch(console.error)
 })
 
 // programma2.start(true).then(() => {

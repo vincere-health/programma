@@ -73,6 +73,8 @@ export interface IProgramma {
   moveJobToFailed(id: string, deleteOnFail: boolean): Promise<boolean>
   getJob(id: string): Promise<IJobDetail | null>
   setAttributes(id: string, attributes: object): Promise<boolean>
+  setRetryAfterSeconds(id: string, seconds: number): Promise<boolean>
+  setJobStartDate(id: string, startDate: string | Date): Promise<boolean>
   start(): Promise<void>
   shutdown(): void
 }

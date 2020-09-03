@@ -24,14 +24,18 @@ export class PgCommand extends EventEmitter {
     this.pool = null
   }
 
-  public async migrate() {
+  public query(q: string, args: any[] = []): Promise<QueryResult<any>> {
     let pool = this.pool as Pool
+    return pool.query(q, args)
+  }
+
+  public async migrate() {
     try {
-      await pool.query('BEGIN')
-      await pool.query(`Create SCHEMA if not exists ${this.schemaName};`)
-      await pool.query(`Create SCHEMA if not exists ${this.schemaName};`)
-      await pool.query(`Create extension if not exists pgcrypto;`)
-      await pool.query(`
+      await this.query('BEGIN')
+      await this.query(`Create SCHEMA if not exists ${this.schemaName};`)
+      await this.query(`Create SCHEMA if not exists ${this.schemaName};`)
+      await this.query(`Create extension if not exists pgcrypto;`)
+      await this.query(`
         create table if not exists ${this.schemaName}.jobs (
           id uuid primary key not null default gen_random_uuid(),
           topicName text not null,
@@ -44,11 +48,11 @@ export class PgCommand extends EventEmitter {
           retry_after_seconds int
         );
       `)
-      await pool.query(`CREATE INDEX if not exists get_jobs ON ${this.schemaName}.jobs (topicName, start_after, id)`)
-      await pool.query(`CREATE INDEX if not exists get_fifo_jobs ON ${this.schemaName}.jobs (start_after, id)`)
-      await pool.query('COMMIT')
+      await this.query(`CREATE INDEX if not exists get_jobs ON ${this.schemaName}.jobs (topicName, start_after, id)`)
+      await this.query(`CREATE INDEX if not exists get_fifo_jobs ON ${this.schemaName}.jobs (start_after, id)`)
+      await this.query('COMMIT')
     } catch (e) {
-      await pool.query('ROLLBACK')
+      await this.query('ROLLBACK')
     }
   }
 
@@ -59,8 +63,7 @@ export class PgCommand extends EventEmitter {
     startAfter: string | Date,
     retryAfterSeconds: number | null,
   ): Promise<QueryResult<any>> {
-    let pool = this.pool as Pool
-    return pool.query(
+    return this.query(
       `
       INSERT INTO ${this.schemaName}.jobs (
         topicName, data, attributes, state, start_after, retry_after_seconds
@@ -74,8 +77,7 @@ export class PgCommand extends EventEmitter {
     id: string,
     state: JobStates
   ): Promise<QueryResult<any>> {
-    let pool = this.pool as Pool
-    return pool.query(
+    return this.query(
       `
         Update ${this.schemaName}.jobs
         SET state = '${state}'
@@ -84,12 +86,38 @@ export class PgCommand extends EventEmitter {
     )
   }
 
+  public setRetryAfterSeconds(
+    id: string,
+    retryAfterSeconds: number
+  ): Promise<QueryResult<any>> {
+    return this.query(
+      `
+        Update ${this.schemaName}.jobs
+        SET retry_after_seconds = ${retryAfterSeconds}
+        where id = '${id}'
+      `
+    )
+  }
+
+  public setJobStartTime(
+    id: string,
+    startAfter: string | Date,
+  ): Promise<QueryResult<any>> {
+    return this.query(
+      `
+        Update ${this.schemaName}.jobs
+        SET start_after = $2
+        where id = $1
+      `,
+      [id, startAfter]
+    )
+  }
+
   public setAttributes(
     id: string,
     attributes: object = {},
   ): Promise<QueryResult<any>> {
-    let pool = this.pool as Pool
-    return pool.query(`
+    return this.query(`
       Update ${this.schemaName}.jobs
       SET attributes = (attributes || '${JSON.stringify(attributes)}'::jsonb)
       where id = '${id}'
@@ -97,15 +125,13 @@ export class PgCommand extends EventEmitter {
   }
 
   public ping(): Promise<QueryResult<any>> {
-    let pool = this.pool as Pool
-    return pool.query(`Select now();`)
+    return this.query(`Select now();`)
   }
 
   public getJobDetails(
     id: string,
   ): Promise<QueryResult<any>> {
-    let pool = this.pool as Pool
-    return pool.query(
+    return this.query(
       `
         Select * from ${this.schemaName}.jobs
         where id = '${id}'
@@ -116,8 +142,7 @@ export class PgCommand extends EventEmitter {
   public deleteJob(
     id: string,
   ): Promise<QueryResult<any>> {
-    let pool = this.pool as Pool
-    return pool.query(
+    return this.query(
       `
         Delete from ${this.schemaName}.jobs
         where id = '${id}'
@@ -129,8 +154,7 @@ export class PgCommand extends EventEmitter {
     topicName: string,
     limit: number,
   ): Promise<QueryResult<any>> {
-    let pool = this.pool as Pool
-    return pool.query(
+    return this.query(
       `
         with claimJob as (
           SELECT id
