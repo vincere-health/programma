@@ -251,7 +251,7 @@ create table if not exists ${this.schemaName}.jobs (
 ## Meta
 **Author: hadi@vincere.health**
 
-Crated at [Vincere](https://www.vincere.health/) since we had a very similar use-case. Our initial design inspiration came from [this blog](https://www.holistics.io/blog/how-we-built-a-multi-tenant-job-queue-system-with-postgresql-ruby/)
+Created at [Vincere](https://www.vincere.health/) since we had a very similar use-case. Our initial design inspiration came from [this blog](https://www.holistics.io/blog/how-we-built-a-multi-tenant-job-queue-system-with-postgresql-ruby/)
 
 Also we were inspired by [Pinterest Pin Later](https://github.com/pinterest/pinlater) although it's fundamentally different in implementation
 
