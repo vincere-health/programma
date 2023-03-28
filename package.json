@@ -1,6 +1,6 @@
 {
   "name": "programma",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "A light weight, customizable, simple FIFO Queue backed by PostgresSQL",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -31,7 +31,7 @@
     "@types/sinon": "^9.0.5",
     "@types/uuid": "^8.3.0",
     "chai": "^4.2.0",
-    "mocha": "^8.1.2",
+    "mocha": "^10.2.0",
     "sinon": "^9.0.3",
     "ts-node": "^9.0.0",
     "tslint": "^6.1.3",
