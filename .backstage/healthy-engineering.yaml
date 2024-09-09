@@ -1,0 +1,9 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: programma
+  description: A light weight, simple FIFO Queue backed by PostgresSQL for scheduling and job fan-out, orchestration and tracking
+spec:
+  type: service # can be one of: service, library, website, event-driven-service, terraform-module, terraform-repo
+  lifecycle: production # can be one of: experimental, production, deprecated
+  owner: team-vincere # your existing tech team, i.e. team-developer-platforms
