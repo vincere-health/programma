@@ -11,12 +11,13 @@ _A light weight, simple FIFO Queue backed by PostgresSQL for delayed tasks._
 ## Quickstart
 
 ```bash
-npm install programma
+pnpm add @vincere-health/programma
 ```
 
+Configure GitHub Packages for the `@vincere-health` scope (for example in `.npmrc`: `@vincere-health:registry=https://npm.pkg.github.com/` and `//npm.pkg.github.com/:_authToken=...`).
 
 ```ts
-import { Programma } from 'programma'
+import { Programma } from '@vincere-health/programma'
 
 const programma = new Programma({
   connectionString: '<database-connection-string>',
