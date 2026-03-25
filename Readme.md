@@ -11,7 +11,7 @@ _A light weight, simple FIFO Queue backed by PostgresSQL for delayed tasks._
 ## Quickstart
 
 ```bash
-npm install programma
+pnpm add programma
 ```
 
 
