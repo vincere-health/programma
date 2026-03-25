@@ -1,5 +1,5 @@
 {
-  "name": "programma",
+  "name": "@vincere-health/programma",
   "version": "0.0.9",
   "description": "A light weight, customizable, simple FIFO Queue backed by PostgresSQL",
   "main": "dist/index.js",
@@ -51,5 +51,12 @@
   "bugs": {
     "url": "https://github.com/vincere-health/programma/issues"
   },
-  "homepage": "https://github.com/vincere-health/programma#readme"
+  "homepage": "https://github.com/vincere-health/programma#readme",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "files": [
+    "dist",
+    "Readme.md"
+  ]
 }

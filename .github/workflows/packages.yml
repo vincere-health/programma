@@ -1,0 +1,33 @@
+# Publish to GitHub Packages when a release is created.
+# See https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages
+
+name: programma
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  publish-gpr:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://npm.pkg.github.com/
+          scope: '@vincere-health'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+      - run: echo -e "\n//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> ./.npmrc
+
+      - run: pnpm --version
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run build
+      - run: pnpm publish --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
